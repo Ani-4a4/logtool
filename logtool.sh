@@ -33,14 +33,35 @@ need_dir() {
 log_files() {
     find "$1" -type f -name '*.log'
 }
+
+summary() {
+    need_dir "$@"
+    dir=$1
+
+    files_scanned=$(log_files "$dir" | grep -c .)
+    lines_processed=$(find "$dir" -type f -name '*.log' -exec cat {} + |
+        grep -vE '^[[:space:]]*#' |
+        grep -vE '^[[:space:]]*$' |
+        grep -c .)
+
+    echo "FILES_SCANNED=$files_scanned"
+    echo "LINES_PROCESSED=$lines_processed"
+
+    for level in ERROR WARN INFO; do
+        count=$(find "$dir" -type f -name '*.log' -exec grep -hoE "level=$level" {} + |
+            grep -c .)
+        echo "$level=$count"
+    done
+}
+
 cmd=${1:-}
 
 if [ "$cmd" = "--help" ]; then
     usage
     exit 0
 elif [ "$cmd" = "summary" ]; then
-    err "Not implemented yet"
-    exit 1
+    summary "${@:2}"
+    exit 0
 elif [ "$cmd" = "services" ]; then
     err "Not implemented yet"
     exit 1
