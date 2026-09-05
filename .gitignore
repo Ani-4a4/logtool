@@ -1,0 +1,14 @@
+# --- Editor / OS clutter ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# --- Local scratch / test output ---
+tmp/
+tests/actual/
+report.txt
+*.log.tmp
