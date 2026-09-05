@@ -21,22 +21,22 @@ usage() {
 
 cmd=${1:-}
 
-if ["$cmd" = "--help"]; then
+if [ "$cmd" = "--help" ]; then
     usage
     exit 0
-elif ["$cmd" = "summary"]; then
+elif [ "$cmd" = "summary" ]; then
     err "Not implemented yet"
     exit 1
-elif ["$cmd" = "services"]; then
+elif [ "$cmd" = "services" ]; then
     err "Not implemented yet"
     exit 1
-elif ["$cmd" = "failed-logins"]; then
+elif [ "$cmd" = "failed-logins" ]; then
     err "Not implemented yet"
     exit 1
-elif ["$cmd" = "report"]; then
+elif [ "$cmd" = "report" ]; then
     err "Not implemented yet"
     exit 1
-elif ["$cmd" = ""]; then
+elif [ "$cmd" = "" ]; then
     err "no command given (try: ./logtool.sh --help)"
     exit 1
 else
