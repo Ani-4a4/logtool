@@ -19,6 +19,20 @@ usage() {
     echo "      Generate a consolidated plain-text report"
 }
 
+need_dir() {
+    if [ "$#" -eq 0 ]; then
+        err "missing <log_dir> argument"
+        exit 1
+    fi
+    if [ ! -d "$1" ]; then
+        err "no such directory: $1"
+        exit 1
+    fi
+}
+
+log_files() {
+    find "$1" -type f -name '*.log'
+}
 cmd=${1:-}
 
 if [ "$cmd" = "--help" ]; then
