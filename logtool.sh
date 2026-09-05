@@ -34,6 +34,18 @@ log_files() {
     find "$1" -type f -name '*.log'
 }
 
+count_field() {
+    dir=$1
+    field=$2
+    find "$dir" -type f -name '*.log' -exec grep -hoE "$field=[^ ]+" {} + |
+        sort |
+        uniq -c |
+        sort -k1,1nr -k2,2 |
+        while read count kv; do
+            echo "${kv#*=} $count"
+        done
+}
+
 summary() {
     need_dir "$@"
     dir=$1
