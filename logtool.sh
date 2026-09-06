@@ -34,6 +34,18 @@ log_files() {
     find "$1" -type f -name '*.log'
 }
 
+count_field() {
+    dir=$1
+    field=$2
+    find "$dir" -type f -name '*.log' -exec grep -hoE "$field=[^ ]+" {} + |
+        sort |
+        uniq -c |
+        sort -k1,1nr -k2,2 |
+        while read count kv; do
+            echo "${kv#*=} $count"
+        done
+}
+
 summary() {
     need_dir "$@"
     dir=$1
@@ -54,6 +66,11 @@ summary() {
     done
 }
 
+services() {
+    need_dir "$@"
+    count_field "$1" service
+}
+
 cmd=${1:-}
 
 if [ "$cmd" = "--help" ]; then
@@ -63,8 +80,8 @@ elif [ "$cmd" = "summary" ]; then
     summary "${@:2}"
     exit 0
 elif [ "$cmd" = "services" ]; then
-    err "Not implemented yet"
-    exit 1
+    services "${@:2}"
+    exit 0
 elif [ "$cmd" = "failed-logins" ]; then
     err "Not implemented yet"
     exit 1
