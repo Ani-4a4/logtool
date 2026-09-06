@@ -66,6 +66,11 @@ summary() {
     done
 }
 
+services() {
+    need_dir "$@"
+    count_field "$1" service
+}
+
 cmd=${1:-}
 
 if [ "$cmd" = "--help" ]; then
@@ -75,8 +80,8 @@ elif [ "$cmd" = "summary" ]; then
     summary "${@:2}"
     exit 0
 elif [ "$cmd" = "services" ]; then
-    err "Not implemented yet"
-    exit 1
+    services "${@:2}"
+    exit 0
 elif [ "$cmd" = "failed-logins" ]; then
     err "Not implemented yet"
     exit 1
