@@ -17,6 +17,8 @@ usage() {
     echo "      Print failed login counts by user"
     echo "  report <log_dir> <output_file>"
     echo "      Generate a consolidated plain-text report"
+    echo "  top-events <log_dir> [N]"
+    echo "      Print the most frequent event labels (default N=3)"
 }
 
 need_dir() {
