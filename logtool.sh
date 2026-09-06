@@ -71,6 +71,20 @@ services() {
     count_field "$1" service
 }
 
+failed_logins() {
+    need_dir "$@"
+    dir=$1
+    find "$dir" -type f -name '*.log' -exec grep -hE 'event=FAILED_LOGIN' {} + |
+        grep -oE 'user=[^ ]+' |
+        grep -vE '^user=-$' |
+        sort |
+        uniq -c |
+        sort -k1,1nr -k2,2 |
+        while read count kv; do
+            echo "${kv#*=} $count"
+        done
+}
+
 cmd=${1:-}
 
 if [ "$cmd" = "--help" ]; then
@@ -83,8 +97,8 @@ elif [ "$cmd" = "services" ]; then
     services "${@:2}"
     exit 0
 elif [ "$cmd" = "failed-logins" ]; then
-    err "Not implemented yet"
-    exit 1
+    failed_logins "${@:2}"
+    exit 0
 elif [ "$cmd" = "report" ]; then
     err "Not implemented yet"
     exit 1
