@@ -85,6 +85,37 @@ failed_logins() {
         done
 }
 
+# Write a consolidated plain-text report to <output_file>.
+report() {
+    if [ "$#" -lt 2 ]; then
+        err "usage: report <log_dir> <output_file>"
+        exit 1
+    fi
+    need_dir "$1"
+    dir=$1
+    out=$2
+
+    {
+        echo "=== Log Report ==="
+        echo "[Overview]"
+        echo "Files scanned: $(log_files "$dir" | grep -c .)"
+        echo "Lines processed: $(find "$dir" -type f -name '*.log' -exec cat {} + |
+            grep -vE '^[[:space:]]*#' |
+            grep -vE '^[[:space:]]*$' |
+            grep -c .)"
+        echo "[COUNTS BY LEVEL]"
+        for level in ERROR WARN INFO; do
+            count=$(find "$dir" -type f -name '*.log' -exec grep -hoE "level=$level" {} + |
+                grep -c .)
+            echo "$level $count"
+        done
+        echo "[COUNTS BY SERVICE]"
+        count_field "$dir" service
+        echo "[FAILED LOGIN USERS]"
+        failed_logins "$dir"
+    } > "$out"
+}
+
 cmd=${1:-}
 
 if [ "$cmd" = "--help" ]; then
@@ -100,8 +131,8 @@ elif [ "$cmd" = "failed-logins" ]; then
     failed_logins "${@:2}"
     exit 0
 elif [ "$cmd" = "report" ]; then
-    err "Not implemented yet"
-    exit 1
+    report "${@:2}"
+    exit 0
 elif [ "$cmd" = "" ]; then
     err "no command given (try: ./logtool.sh --help)"
     exit 1
