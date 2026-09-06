@@ -85,7 +85,6 @@ failed_logins() {
         done
 }
 
-# Write a consolidated plain-text report to <output_file>.
 report() {
     if [ "$#" -lt 2 ]; then
         err "usage: report <log_dir> <output_file>"
@@ -116,6 +115,17 @@ report() {
     } > "$out"
 }
 
+top_events() {
+    need_dir "$@"
+    dir=$1
+    n=${2:-3}
+    if ! echo "$n" | grep -qE '^[0-9]+$'; then
+        err "N needs to be a positive integer"
+        exit 1
+    fi
+    count_field "$dir" event | head -n "$n"
+}
+
 cmd=${1:-}
 
 if [ "$cmd" = "--help" ]; then
@@ -132,6 +142,9 @@ elif [ "$cmd" = "failed-logins" ]; then
     exit 0
 elif [ "$cmd" = "report" ]; then
     report "${@:2}"
+    exit 0
+elif [ "$cmd" = "top-events" ]; then
+    top_events "${@:2}"
     exit 0
 elif [ "$cmd" = "" ]; then
     err "no command given (try: ./logtool.sh --help)"
