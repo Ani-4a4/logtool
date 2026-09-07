@@ -1,0 +1,5 @@
+# edge-case fixture
+2026-05-01T00:00:00Z host=h1 service=sshd level=ERROR event=FAILED_LOGIN user=alice ip=10.0.0.1 msg="bad password"
+2026-05-01T00:00:01Z host=h1 service=sshd level=ERROR event=FAILED_LOGIN user=- ip=10.0.0.2 msg="unknown user"
+
+2026-05-01T00:00:02Z host=h2 service=nginx level=INFO event=HTTP_200 user=- ip=10.0.0.3 msg="ok"
