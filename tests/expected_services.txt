@@ -1,0 +1,6 @@
+sshd 14
+nginx 10
+backup 9
+cron 9
+kernel 7
+authd 5

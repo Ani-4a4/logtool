@@ -31,14 +31,14 @@ check_fails() {
     fi
 }
 
-echo "# Normal cases (provided dataset)"
+echo "# Normal cases"
 check "summary"       expected_summary.txt       "$tool" summary logs
 check "services"      expected_services.txt      "$tool" services logs
 check "failed-logins" expected_failed_logins.txt "$tool" failed-logins logs
 check "top-events"    expected_top_events.txt    "$tool" top-events logs
 
 echo
-echo "# Edge cases (custom fixtures)"
+echo "# Edge cases"
 check "edge summary"       expected_edge_summary.txt       "$tool" summary tests/edge
 check "edge services"      expected_edge_services.txt      "$tool" services tests/edge
 check "edge failed-logins" expected_edge_failed_logins.txt "$tool" failed-logins tests/edge
@@ -46,7 +46,7 @@ check "edge top-events"    expected_edge_top_events.txt    "$tool" top-events te
 check "empty summary"      expected_empty_summary.txt      "$tool" summary tests/empty
 
 echo
-echo "# Invalid-input cases (should error, non-zero exit)"
+echo "# Invalid-input cases"
 check_fails "no such directory"     "$tool" summary /no/such/dir
 check_fails "missing argument"      "$tool" summary
 check_fails "non-numeric N"         "$tool" top-events logs abc
