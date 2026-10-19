@@ -37,35 +37,43 @@ log_files() {
     find "$1" -type f -name '*.log'
 }
 
+# Print every log entry (non-comment, non-blank line) from all .log files.
+# grep reads each file separately, so a file whose last line has no
+# trailing newline is never merged with the first line of the next file.
+entries() {
+    find "$1" -type f -name '*.log' -exec grep -hvE '^[[:space:]]*(#|$)' {} +
+}
+
+count_lines() {
+    entries "$1" | grep -c .
+}
+
+count_level() {
+    entries "$1" | grep -cE "(^| )level=$2( |$)"
+}
+
 count_field() {
-    dir=$1
-    field=$2
-    find "$dir" -type f -name '*.log' -exec grep -hoE "$field=[^ ]+" {} + |
+    local dir=$1
+    local field=$2
+    local count kv
+    entries "$dir" | grep -oE "(^| )$field=[^ ]+" | sed 's/^ //' |
         sort |
         uniq -c |
         sort -k1,1nr -k2,2 |
-        while read count kv; do
+        while read -r count kv; do
             echo "${kv#*=} $count"
         done
 }
 
 summary() {
     need_dir "$@"
-    dir=$1
+    local dir=$1 level
 
-    files_scanned=$(log_files "$dir" | grep -c .)
-    lines_processed=$(find "$dir" -type f -name '*.log' -exec cat {} + |
-        grep -vE '^[[:space:]]*#' |
-        grep -vE '^[[:space:]]*$' |
-        grep -c .)
-
-    echo "FILES_SCANNED=$files_scanned"
-    echo "LINES_PROCESSED=$lines_processed"
+    echo "FILES_SCANNED=$(log_files "$dir" | grep -c .)"
+    echo "LINES_PROCESSED=$(count_lines "$dir")"
 
     for level in ERROR WARN INFO; do
-        count=$(find "$dir" -type f -name '*.log' -exec grep -hoE "level=$level" {} + |
-            grep -c .)
-        echo "$level=$count"
+        echo "$level=$(count_level "$dir" "$level")"
     done
 }
 
@@ -76,14 +84,15 @@ services() {
 
 failed_logins() {
     need_dir "$@"
-    dir=$1
-    find "$dir" -type f -name '*.log' -exec grep -hE 'event=FAILED_LOGIN' {} + |
-        grep -oE 'user=[^ ]+' |
+    local dir=$1
+    local count kv
+    entries "$dir" | grep -E '(^| )event=FAILED_LOGIN( |$)' |
+        grep -oE '(^| )user=[^ ]+' | sed 's/^ //' |
         grep -vE '^user=-$' |
         sort |
         uniq -c |
         sort -k1,1nr -k2,2 |
-        while read count kv; do
+        while read -r count kv; do
             echo "${kv#*=} $count"
         done
 }
@@ -94,22 +103,24 @@ report() {
         exit 1
     fi
     need_dir "$1"
-    dir=$1
-    out=$2
+    local dir=$1
+    local out=$2
+    local level
+
+    # Check the output file can be written before building the report
+    if ! : 2>/dev/null > "$out"; then
+        err "cannot write report to: $out"
+        exit 1
+    fi
 
     {
         echo "=== Log Report ==="
         echo "[Overview]"
         echo "Files scanned: $(log_files "$dir" | grep -c .)"
-        echo "Lines processed: $(find "$dir" -type f -name '*.log' -exec cat {} + |
-            grep -vE '^[[:space:]]*#' |
-            grep -vE '^[[:space:]]*$' |
-            grep -c .)"
+        echo "Lines processed: $(count_lines "$dir")"
         echo "[COUNTS BY LEVEL]"
         for level in ERROR WARN INFO; do
-            count=$(find "$dir" -type f -name '*.log' -exec grep -hoE "level=$level" {} + |
-                grep -c .)
-            echo "$level $count"
+            echo "$level $(count_level "$dir" "$level")"
         done
         echo "[COUNTS BY SERVICE]"
         count_field "$dir" service
@@ -120,9 +131,9 @@ report() {
 
 top_events() {
     need_dir "$@"
-    dir=$1
-    n=${2:-3}
-    if ! echo "$n" | grep -qE '^[0-9]+$'; then
+    local dir=$1
+    local n=${2:-3}
+    if ! echo "$n" | grep -qE '^[1-9][0-9]*$'; then
         err "N needs to be a positive integer"
         exit 1
     fi

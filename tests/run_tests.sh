@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -u
 
 cd "$(dirname "$0")/.." || exit 1
@@ -52,6 +53,8 @@ check_fails "missing argument"      "$tool" summary
 check_fails "non-numeric N"         "$tool" top-events logs abc
 check_fails "unknown command"       "$tool" bogus
 check_fails "report missing output" "$tool" report logs
+check_fails "top-events N of zero"  "$tool" top-events logs 0
+check_fails "report unwritable"     "$tool" report logs /nonexistent/dir/out.txt
 
 echo
 echo "# report file output"
